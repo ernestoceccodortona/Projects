@@ -1,16 +1,12 @@
-let projects = JSON.parse(localStorage.getItem('linkcloud_final')) || [];
+let projects = JSON.parse(localStorage.getItem('linkcloud_v4')) || [];
 let activeIdx = null;
 
-// Database dei "Magic Links" per la creazione istantanea
 const creationServices = [
     { name: 'Google Doc', createUrl: 'https://docs.google.com/document/create', domain: 'docs.google.com' },
     { name: 'Google Sheet', createUrl: 'https://docs.google.com/spreadsheets/create', domain: 'sheets.google.com' },
     { name: 'Figma Design', createUrl: 'https://www.figma.com/file/new', domain: 'figma.com' },
     { name: 'Notion Page', createUrl: 'https://www.notion.so/', domain: 'notion.so' },
-    { name: 'Canva Design', createUrl: 'https://www.canva.com/design/play', domain: 'canva.com' },
-    { name: 'Miro Board', createUrl: 'https://miro.com/app/dashboard/', domain: 'miro.com' },
-    { name: 'Trello Board', createUrl: 'https://trello.com/create-board', domain: 'trello.com' },
-    { name: 'GitHub Repo', createUrl: 'https://github.com/new', domain: 'github.com' }
+    { name: 'Canva Design', createUrl: 'https://www.canva.com/design/play', domain: 'canva.com' }
 ];
 
 function addProject() {
@@ -24,9 +20,7 @@ function dynamicSearch() {
     resultsDiv.innerHTML = '';
     if (query.length < 1) return;
 
-    const filtered = creationServices.filter(s => s.name.toLowerCase().includes(query));
-    
-    filtered.forEach(s => {
+    creationServices.filter(s => s.name.toLowerCase().includes(query)).forEach(s => {
         const div = document.createElement('div');
         div.className = 'search-item';
         div.innerHTML = `<img src="https://logo.clearbit.com/${s.domain}?size=16"> ${s.name}`;
@@ -37,31 +31,53 @@ function dynamicSearch() {
 
 function instantiateLink(service) {
     const title = document.getElementById('asset-name').value;
-    if (!title) return alert("Prima inserisci un nome per il file!");
+    if (!title) return alert("Inserisci un nome per il file!");
 
-    // Creiamo l'elemento senza aprire nulla
     projects[activeIdx].links.push({
         title: title,
         url: service.createUrl,
+        isNew: true, // Indica che il file deve ancora essere mappato
+        domain: service.domain,
         logo: `https://logo.clearbit.com/${service.domain}`
     });
 
     save();
-    
-    // Reset campi
     document.getElementById('asset-name').value = '';
     document.getElementById('service-search').value = '';
     document.getElementById('search-results').innerHTML = '';
 }
 
+// LA LOGICA CHIAVE: Gestisce il click sulla card
+function handleCardClick(linkIdx) {
+    const link = projects[activeIdx].links[linkIdx];
+    
+    if (link.isNew) {
+        // Primo click: Apriamo la creazione
+        window.open(link.url, '_blank');
+        
+        // Chiediamo l'URL finale per "fissarlo"
+        setTimeout(() => {
+            const finalUrl = prompt(`Incolla qui l'URL del file "${link.title}" appena creato per fissarlo definitivamente:`);
+            if (finalUrl) {
+                link.url = finalUrl;
+                link.isNew = false;
+                save();
+            }
+        }, 1000);
+    } else {
+        // Click successivi: Vai direttamente al file
+        window.open(link.url, '_blank');
+    }
+}
+
 function deleteLink(lIdx, e) {
-    e.preventDefault();
+    e.stopPropagation(); // Evita di attivare il click della card
     projects[activeIdx].links.splice(lIdx, 1);
     save();
 }
 
 function save() {
-    localStorage.setItem('linkcloud_final', JSON.stringify(projects));
+    localStorage.setItem('linkcloud_v4', JSON.stringify(projects));
     render();
 }
 
@@ -89,14 +105,14 @@ function render() {
         document.getElementById('current-project-title').innerText = projects[activeIdx].name;
 
         projects[activeIdx].links.forEach((l, i) => {
-            const card = document.createElement('a');
-            card.className = 'link-card';
-            card.href = l.url;
-            card.target = '_blank';
+            const card = document.createElement('div');
+            card.className = `link-card ${l.isNew ? 'is-new' : ''}`;
+            card.onclick = () => handleCardClick(i);
             card.innerHTML = `
                 <button class="delete-btn" onclick="deleteLink(${i}, event)">✕</button>
                 <img src="${l.logo}">
                 <span>${l.title}</span>
+                ${l.isNew ? '<small style="color:var(--accent)">Clicca per configurare</small>' : ''}
             `;
             container.appendChild(card);
         });
