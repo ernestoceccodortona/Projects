@@ -2,22 +2,19 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkCloud | Workspace Operativo</title>
+    <title>LinkCloud | Istantaneo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
         <aside>
-            <div class="sidebar-header">
-                <h3>LinkCloud</h3>
-            </div>
+            <h3>Progetti</h3>
             <nav id="project-list"></nav>
             <button class="add-project-btn" onclick="addProject()">+ Nuovo Progetto</button>
         </aside>
 
         <main>
-            <header class="main-header">
+            <header>
                 <h1 id="current-project-title">Seleziona un progetto</h1>
                 <button id="del-project-btn" class="danger-btn" style="display:none;">Elimina Progetto</button>
             </header>
@@ -25,20 +22,12 @@
             <div id="links-container" class="grid"></div>
 
             <section id="creator-tool" class="creator-panel" style="display:none;">
-                <h4>Aggiungi un Documento/Link</h4>
-                <div class="step">
-                    <input type="text" id="service-search" placeholder="1. Cerca servizio (es. Google, Figma, Slack...)" oninput="dynamicSearch()">
-                    <div id="search-results" class="search-suggestions"></div>
+                <h4>Crea Nuovo Asset</h4>
+                <div class="input-row">
+                    <input type="text" id="asset-name" placeholder="Nome del file (es. Budget 2026)">
+                    <input type="text" id="service-search" placeholder="Cerca servizio (es. Google, Figma...)" oninput="dynamicSearch()">
                 </div>
-
-                <div id="url-input-zone" style="display:none; margin-top:20px;">
-                    <div id="selected-service-info"></div>
-                    <div class="input-group">
-                        <input type="text" id="link-title" placeholder="Nome del file (es. Mockup Home)">
-                        <input type="text" id="manual-url" placeholder="Incolla URL del file (https://...)">
-                        <button onclick="confirmAddLink()" class="save-btn">Salva Link</button>
-                    </div>
-                </div>
+                <div id="search-results" class="search-suggestions"></div>
             </section>
         </main>
     </div>
