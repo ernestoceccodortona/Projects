@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkCloud | Workspace Operativo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="app">
+        <aside>
+            <div class="sidebar-header">
+                <h3>LinkCloud</h3>
+            </div>
+            <nav id="project-list">
+                </nav>
+            <button class="add-project-btn" onclick="addProject()">+ Nuovo Progetto</button>
+        </aside>
+
+        <main>
+            <header class="main-header">
+                <h1 id="current-project-title">Seleziona un progetto</h1>
+            </header>
+
+            <section id="links-container" class="grid">
+                </section>
+
+            <section id="creator-tool" class="creator-panel" style="display:none;">
+                <div class="creator-header">
+                    <h4>Crea o aggiungi una risorsa</h4>
+                </div>
+                <input type="text" id="service-search" placeholder="Cerca servizio (es. Figma, Google Docs, Notion...)" oninput="searchService()">
+                <div id="search-results" class="search-suggestions"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
