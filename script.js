@@ -1,15 +1,16 @@
-let projects = JSON.parse(localStorage.getItem('linkcloud_v3')) || [];
+let projects = JSON.parse(localStorage.getItem('linkcloud_final')) || [];
 let activeIdx = null;
-let selectedService = null;
 
-// Database interno di emergenza se l'API fallisce o viene bloccata
-const internalServices = [
-    { name: 'Google Docs', domain: 'docs.google.com', logo: 'https://logo.clearbit.com/docs.google.com' },
-    { name: 'Figma', domain: 'figma.com', logo: 'https://logo.clearbit.com/figma.com' },
-    { name: 'Notion', domain: 'notion.so', logo: 'https://logo.clearbit.com/notion.so' },
-    { name: 'GitHub', domain: 'github.com', logo: 'https://logo.clearbit.com/github.com' },
-    { name: 'Canva', domain: 'canva.com', logo: 'https://logo.clearbit.com/canva.com' },
-    { name: 'Slack', domain: 'slack.com', logo: 'https://logo.clearbit.com/slack.com' }
+// Database dei "Magic Links" per la creazione istantanea
+const creationServices = [
+    { name: 'Google Doc', createUrl: 'https://docs.google.com/document/create', domain: 'docs.google.com' },
+    { name: 'Google Sheet', createUrl: 'https://docs.google.com/spreadsheets/create', domain: 'sheets.google.com' },
+    { name: 'Figma Design', createUrl: 'https://www.figma.com/file/new', domain: 'figma.com' },
+    { name: 'Notion Page', createUrl: 'https://www.notion.so/', domain: 'notion.so' },
+    { name: 'Canva Design', createUrl: 'https://www.canva.com/design/play', domain: 'canva.com' },
+    { name: 'Miro Board', createUrl: 'https://miro.com/app/dashboard/', domain: 'miro.com' },
+    { name: 'Trello Board', createUrl: 'https://trello.com/create-board', domain: 'trello.com' },
+    { name: 'GitHub Repo', createUrl: 'https://github.com/new', domain: 'github.com' }
 ];
 
 function addProject() {
@@ -17,50 +18,40 @@ function addProject() {
     if (name) { projects.push({ name, links: [] }); save(); }
 }
 
-async function dynamicSearch() {
+function dynamicSearch() {
     const query = document.getElementById('service-search').value.toLowerCase();
     const resultsDiv = document.getElementById('search-results');
     resultsDiv.innerHTML = '';
     if (query.length < 1) return;
 
-    // 1. Mostra sempre i risultati interni per velocità e affidabilità
-    const filtered = internalServices.filter(s => s.name.toLowerCase().includes(query));
+    const filtered = creationServices.filter(s => s.name.toLowerCase().includes(query));
     
-    // 2. Tenta fetch esterno (potrebbe fallire per CORS)
-    try {
-        const resp = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${query}`);
-        const data = await resp.json();
-        data.forEach(c => {
-            if(!filtered.find(f => f.domain === c.domain)) filtered.push(c);
-        });
-    } catch (e) { console.warn("API esterna bloccata, uso database interno."); }
-
     filtered.forEach(s => {
         const div = document.createElement('div');
         div.className = 'search-item';
-        div.innerHTML = `<img src="${s.logo}" width="16"> ${s.name}`;
-        div.onclick = () => {
-            selectedService = s;
-            document.getElementById('url-input-zone').style.display = 'block';
-            document.getElementById('selected-service-info').innerHTML = `Stai aggiungendo un file di <strong>${s.name}</strong>`;
-        };
+        div.innerHTML = `<img src="https://logo.clearbit.com/${s.domain}?size=16"> ${s.name}`;
+        div.onclick = () => instantiateLink(s);
         resultsDiv.appendChild(div);
     });
 }
 
-function confirmAddLink() {
-    const title = document.getElementById('link-title').value;
-    const url = document.getElementById('manual-url').value;
-    if (!title || !url) return alert("Inserisci titolo e URL!");
+function instantiateLink(service) {
+    const title = document.getElementById('asset-name').value;
+    if (!title) return alert("Prima inserisci un nome per il file!");
 
-    projects[activeIdx].links.push({ title, url, logo: selectedService.logo });
+    // Creiamo l'elemento senza aprire nulla
+    projects[activeIdx].links.push({
+        title: title,
+        url: service.createUrl,
+        logo: `https://logo.clearbit.com/${service.domain}`
+    });
+
     save();
     
-    // Reset
-    document.getElementById('link-title').value = '';
-    document.getElementById('manual-url').value = '';
-    document.getElementById('url-input-zone').style.display = 'none';
+    // Reset campi
+    document.getElementById('asset-name').value = '';
     document.getElementById('service-search').value = '';
+    document.getElementById('search-results').innerHTML = '';
 }
 
 function deleteLink(lIdx, e) {
@@ -69,16 +60,8 @@ function deleteLink(lIdx, e) {
     save();
 }
 
-function deleteProject() {
-    if(confirm("Eliminare il progetto?")) {
-        projects.splice(activeIdx, 1);
-        activeIdx = null;
-        save();
-    }
-}
-
 function save() {
-    localStorage.setItem('linkcloud_v3', JSON.stringify(projects));
+    localStorage.setItem('linkcloud_final', JSON.stringify(projects));
     render();
 }
 
@@ -88,20 +71,21 @@ function render() {
     projects.forEach((p, i) => {
         const btn = document.createElement('div');
         btn.className = `project-item ${activeIdx === i ? 'active' : ''}`;
-        btn.innerHTML = `<span>${p.name}</span>`;
+        btn.innerText = p.name;
         btn.onclick = () => { activeIdx = i; render(); };
         pList.appendChild(btn);
     });
 
     const container = document.getElementById('links-container');
     const tool = document.getElementById('creator-tool');
-    const delBtn = document.getElementById('del-project-btn');
     container.innerHTML = '';
 
     if (activeIdx !== null) {
         tool.style.display = 'block';
-        delBtn.style.display = 'block';
-        delBtn.onclick = deleteProject;
+        document.getElementById('del-project-btn').style.display = 'block';
+        document.getElementById('del-project-btn').onclick = () => {
+            if(confirm("Elimina progetto?")) { projects.splice(activeIdx, 1); activeIdx = null; save(); }
+        };
         document.getElementById('current-project-title').innerText = projects[activeIdx].name;
 
         projects[activeIdx].links.forEach((l, i) => {
@@ -110,7 +94,7 @@ function render() {
             card.href = l.url;
             card.target = '_blank';
             card.innerHTML = `
-                <button class="delete-btn" onclick="deleteLink(${i}, event)">Elimina</button>
+                <button class="delete-btn" onclick="deleteLink(${i}, event)">✕</button>
                 <img src="${l.logo}">
                 <span>${l.title}</span>
             `;
