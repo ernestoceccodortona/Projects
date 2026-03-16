@@ -2,7 +2,6 @@ let projects = JSON.parse(localStorage.getItem('linkcloud_projects')) || [];
 let activeIdx = null;
 let selectedService = null;
 
-// Gestione Progetti
 function addProject() {
     const name = prompt("Nome del progetto:");
     if (!name) return;
@@ -10,75 +9,63 @@ function addProject() {
     saveAndRender();
 }
 
-function selectProject(index) {
-    activeIdx = index;
-    document.getElementById('creator-tool').style.display = 'block';
-    render();
+function deleteProject(idx) {
+    if (confirm("Vuoi davvero eliminare l'intero progetto?")) {
+        projects.splice(idx, 1);
+        activeIdx = null;
+        saveAndRender();
+    }
 }
 
-// Ricerca Dinamica Universale
 async function dynamicSearch() {
     const query = document.getElementById('service-search').value;
     const resultsDiv = document.getElementById('search-results');
-    
-    if (query.length < 2) {
-        resultsDiv.innerHTML = '';
-        return;
-    }
+    if (query.length < 2) return;
 
     try {
-        const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${query}`);
-        const data = await response.json();
-        
+        // API alternativa se Clearbit fallisce
+        const resp = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${query}`);
+        const data = await resp.json();
         resultsDiv.innerHTML = '';
-        data.forEach(company => {
+        data.forEach(c => {
             const div = document.createElement('div');
             div.className = 'search-item';
-            div.innerHTML = `<img src="${company.logo}" width="20" height="20"> <span>${company.name}</span>`;
-            div.onclick = () => prepareLink(company);
+            div.innerHTML = `<img src="${c.logo}" width="16"> ${c.name}`;
+            div.onclick = () => selectService(c);
             resultsDiv.appendChild(div);
         });
     } catch (e) {
-        console.error("Errore nella ricerca servizi:", e);
+        resultsDiv.innerHTML = '<small>Errore ricerca. Prova a digitare il dominio es. "google.com"</small>';
     }
 }
 
-function prepareLink(company) {
+function selectService(company) {
     selectedService = company;
+    document.getElementById('selected-service-display').innerHTML = `<img src="${company.logo}" width="20"> Configurazione per ${company.name}`;
     document.getElementById('url-input-zone').style.display = 'block';
-    
-    // Lista di shortcuts per la creazione rapida
-    const createShortcuts = {
-        'google.com': 'https://docs.google.com/document/create',
-        'figma.com': 'https://www.figma.com/file/new',
-        'notion.so': 'https://www.notion.so/',
-        'canva.com': 'https://www.canva.com/design/play'
-    };
-    
-    const urlToOpen = createShortcuts[company.domain] || `https://${company.domain}`;
-    window.open(urlToOpen, '_blank');
 }
 
 function confirmAddLink() {
     const url = document.getElementById('manual-url').value;
-    if (!url || !selectedService) {
-        alert("Per favore, inserisci un link valido.");
-        return;
-    }
+    if (!url) return alert("Incolla un link!");
 
     projects[activeIdx].links.push({
-        name: selectedService.name,
+        title: selectedService.name + " File",
         url: url,
         logo: selectedService.logo
     });
 
     saveAndRender();
-    
-    // Reset UI
-    document.getElementById('manual-url').value = '';
     document.getElementById('url-input-zone').style.display = 'none';
     document.getElementById('service-search').value = '';
     document.getElementById('search-results').innerHTML = '';
+}
+
+function deleteLink(linkIdx, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    projects[activeIdx].links.splice(linkIdx, 1);
+    saveAndRender();
 }
 
 function saveAndRender() {
@@ -92,28 +79,35 @@ function render() {
     projects.forEach((p, i) => {
         const div = document.createElement('div');
         div.className = `project-item ${activeIdx === i ? 'active' : ''}`;
-        div.innerText = p.name;
-        div.onclick = () => selectProject(i);
+        div.innerHTML = `<span>${p.name}</span>`;
+        div.onclick = () => { activeIdx = i; render(); };
         list.appendChild(div);
     });
 
     const container = document.getElementById('links-container');
+    const tool = document.getElementById('creator-tool');
+    const delBtn = document.getElementById('del-project-btn');
     container.innerHTML = '';
+
     if (activeIdx !== null) {
+        tool.style.display = 'block';
+        delBtn.style.display = 'block';
+        delBtn.onclick = () => deleteProject(activeIdx);
         document.getElementById('current-project-title').innerText = projects[activeIdx].name;
-        projects[activeIdx].links.forEach(link => {
+
+        projects[activeIdx].links.forEach((link, lIdx) => {
             const card = document.createElement('a');
             card.className = 'link-card';
             card.href = link.url;
             card.target = '_blank';
             card.innerHTML = `
-                <img src="${link.logo}" onerror="this.src='https://via.placeholder.com/100'">
-                <span>${link.name}</span>
+                <button class="delete-link" onclick="deleteLink(${lIdx}, event)">X</button>
+                <img src="${link.logo}">
+                <span>${link.title}</span>
             `;
             container.appendChild(card);
         });
     }
 }
 
-// Caricamento iniziale
 render();
