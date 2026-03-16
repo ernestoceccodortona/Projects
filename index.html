@@ -3,49 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkCloud | Workspace Operativo</title>
+    <title>LinkCloud | Gestore Progetti</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div id="app">
         <aside>
             <div class="sidebar-header">
                 <h3>LinkCloud</h3>
             </div>
-            <nav id="project-list">
-                </nav>
+            <nav id="project-list"></nav>
             <button class="add-project-btn" onclick="addProject()">+ Nuovo Progetto</button>
         </aside>
 
         <main>
             <header class="main-header">
                 <h1 id="current-project-title">Seleziona un progetto</h1>
+                <button id="del-project-btn" style="display:none;" class="danger-link">Elimina Progetto</button>
             </header>
 
-            <section id="links-container" class="grid">
-                </section>
+            <section id="links-container" class="grid"></section>
 
             <section id="creator-tool" class="creator-panel" style="display:none;">
                 <div class="creator-step">
-                    <h4>1. Cerca il servizio</h4>
-                    <p class="step-desc">Digita il nome di qualsiasi strumento web (es. Slack, Miro, Github...)</p>
-                    <input type="text" id="service-search" placeholder="Cerca servizio..." oninput="dynamicSearch()">
+                    <h4>Aggiungi Link al Progetto</h4>
+                    <p class="step-desc">Cerca il servizio per l'icona e incolla il link del tuo file/documento.</p>
+                    
+                    <input type="text" id="service-search" placeholder="Cerca servizio (es. Figma, Docs...)" oninput="dynamicSearch()">
                     <div id="search-results" class="search-suggestions"></div>
                 </div>
 
-                <div id="url-input-zone" class="creator-step" style="display:none;">
-                    <h4>2. Salva il link del documento</h4>
-                    <p class="step-desc">Abbiamo aperto il servizio in una nuova scheda. Crea il file e incolla qui l'URL finale:</p>
+                <div id="url-input-zone" class="creator-step" style="display:none; border-top: 1px solid #eee; padding-top: 20px;">
+                    <div class="selected-badge" id="selected-service-display"></div>
                     <div class="input-group">
-                        <input type="text" id="manual-url" placeholder="Incolla il link (https://...)">
-                        <button onclick="confirmAddLink()" class="save-btn">Aggiungi al Progetto</button>
+                        <input type="text" id="manual-url" placeholder="Incolla l'URL del file qui...">
+                        <button onclick="confirmAddLink()" class="save-btn">Salva Link</button>
                     </div>
                 </div>
             </section>
         </main>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
