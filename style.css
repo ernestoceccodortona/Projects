@@ -1,20 +1,21 @@
 :root { --bg: #f3f4f6; --sidebar: #111827; --accent: #2563eb; --danger: #dc2626; }
-body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); }
+body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); }
 #app { display: flex; height: 100vh; }
 aside { width: 250px; background: var(--sidebar); color: white; padding: 20px; display: flex; flex-direction: column; }
-.project-item { padding: 10px; margin-bottom: 5px; border-radius: 6px; cursor: pointer; color: #9ca3af; }
+.project-item { padding: 12px; margin-bottom: 5px; border-radius: 6px; cursor: pointer; color: #9ca3af; display: flex; justify-content: space-between; }
 .project-item.active { background: var(--accent); color: white; }
 main { flex: 1; padding: 40px; overflow-y: auto; }
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
-.link-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; position: relative; text-align: center; text-decoration: none; color: inherit; }
-.link-card img { width: 40px; height: 40px; margin-bottom: 10px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+.link-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; position: relative; text-align: center; cursor: pointer; display: block; text-decoration: none; color: inherit; }
+.link-card.is-new { border: 2px dashed var(--accent); background: #f0f7ff; }
+.link-card img { width: 40px; height: 40px; margin-bottom: 10px; border-radius: 8px; }
 .link-card span { display: block; font-weight: 600; font-size: 0.9rem; }
-.delete-btn { position: absolute; top: 5px; right: 5px; background: none; border: none; color: var(--danger); cursor: pointer; font-weight: bold; }
-.creator-panel { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; margin-top: 30px; }
+.delete-btn { position: absolute; top: 5px; right: 5px; background: none; border: none; color: var(--danger); cursor: pointer; }
+.creator-panel { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e5e7eb; margin-top: 20px; }
 .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
-.input-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+.input-row input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
 .search-suggestions { display: flex; gap: 8px; flex-wrap: wrap; }
 .search-item { background: #eff6ff; padding: 8px 15px; border-radius: 20px; cursor: pointer; border: 1px solid #dbeafe; font-size: 13px; display: flex; align-items: center; gap: 6px; }
 .danger-btn { background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
-.add-project-btn { margin-top: auto; padding: 10px; border: 1px dashed #4b5563; background: none; color: white; cursor: pointer; }
+.add-project-btn { margin-top: auto; padding: 12px; border: 1px dashed #4b5563; background: none; color: white; cursor: pointer; border-radius: 8px; }
