@@ -27,11 +27,21 @@
                 </section>
 
             <section id="creator-tool" class="creator-panel" style="display:none;">
-                <div class="creator-header">
-                    <h4>Crea o aggiungi una risorsa</h4>
+                <div class="creator-step">
+                    <h4>1. Cerca il servizio</h4>
+                    <p class="step-desc">Digita il nome di qualsiasi strumento web (es. Slack, Miro, Github...)</p>
+                    <input type="text" id="service-search" placeholder="Cerca servizio..." oninput="dynamicSearch()">
+                    <div id="search-results" class="search-suggestions"></div>
                 </div>
-                <input type="text" id="service-search" placeholder="Cerca servizio (es. Figma, Google Docs, Notion...)" oninput="searchService()">
-                <div id="search-results" class="search-suggestions"></div>
+
+                <div id="url-input-zone" class="creator-step" style="display:none;">
+                    <h4>2. Salva il link del documento</h4>
+                    <p class="step-desc">Abbiamo aperto il servizio in una nuova scheda. Crea il file e incolla qui l'URL finale:</p>
+                    <div class="input-group">
+                        <input type="text" id="manual-url" placeholder="Incolla il link (https://...)">
+                        <button onclick="confirmAddLink()" class="save-btn">Aggiungi al Progetto</button>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
