@@ -1,17 +1,10 @@
 let projects = JSON.parse(localStorage.getItem('linkcloud_projects')) || [];
 let activeIdx = null;
+let selectedService = null;
 
-const templates = [
-    { name: 'Google Docs', url: 'https://docs.google.com/document/create', domain: 'docs.google.com' },
-    { name: 'Figma', url: 'https://www.figma.com/file/new', domain: 'figma.com' },
-    { name: 'Notion', url: 'https://www.notion.so/', domain: 'notion.so' },
-    { name: 'Canva', url: 'https://www.canva.com/design/play', domain: 'canva.com' },
-    { name: 'Trello', url: 'https://trello.com/create-board', domain: 'trello.com' },
-    { name: 'Google Sheets', url: 'https://docs.google.com/spreadsheets/create', domain: 'sheets.google.com' }
-];
-
+// Gestione Progetti
 function addProject() {
-    const name = prompt("Nome del progetto (es. App Redesign):");
+    const name = prompt("Nome del progetto:");
     if (!name) return;
     projects.push({ name, links: [] });
     saveAndRender();
@@ -23,26 +16,67 @@ function selectProject(index) {
     render();
 }
 
-function searchService() {
-    const query = document.getElementById('service-search').value.toLowerCase();
+// Ricerca Dinamica Universale
+async function dynamicSearch() {
+    const query = document.getElementById('service-search').value;
     const resultsDiv = document.getElementById('search-results');
-    resultsDiv.innerHTML = '';
     
-    if (query.length < 1) return;
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
 
-    const filtered = templates.filter(t => t.name.toLowerCase().includes(query));
-    filtered.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'search-item';
-        div.innerHTML = `<img src="https://logo.clearbit.com/${t.domain}?size=20" onerror="this.src='https://via.placeholder.com/20'"> <span>${t.name}</span>`;
-        div.onclick = () => addLink(t.name, t.url, t.domain);
-        resultsDiv.appendChild(div);
-    });
+    try {
+        const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${query}`);
+        const data = await response.json();
+        
+        resultsDiv.innerHTML = '';
+        data.forEach(company => {
+            const div = document.createElement('div');
+            div.className = 'search-item';
+            div.innerHTML = `<img src="${company.logo}" width="20" height="20"> <span>${company.name}</span>`;
+            div.onclick = () => prepareLink(company);
+            resultsDiv.appendChild(div);
+        });
+    } catch (e) {
+        console.error("Errore nella ricerca servizi:", e);
+    }
 }
 
-function addLink(name, url, domain) {
-    projects[activeIdx].links.push({ name, url, domain });
+function prepareLink(company) {
+    selectedService = company;
+    document.getElementById('url-input-zone').style.display = 'block';
+    
+    // Lista di shortcuts per la creazione rapida
+    const createShortcuts = {
+        'google.com': 'https://docs.google.com/document/create',
+        'figma.com': 'https://www.figma.com/file/new',
+        'notion.so': 'https://www.notion.so/',
+        'canva.com': 'https://www.canva.com/design/play'
+    };
+    
+    const urlToOpen = createShortcuts[company.domain] || `https://${company.domain}`;
+    window.open(urlToOpen, '_blank');
+}
+
+function confirmAddLink() {
+    const url = document.getElementById('manual-url').value;
+    if (!url || !selectedService) {
+        alert("Per favore, inserisci un link valido.");
+        return;
+    }
+
+    projects[activeIdx].links.push({
+        name: selectedService.name,
+        url: url,
+        logo: selectedService.logo
+    });
+
     saveAndRender();
+    
+    // Reset UI
+    document.getElementById('manual-url').value = '';
+    document.getElementById('url-input-zone').style.display = 'none';
     document.getElementById('service-search').value = '';
     document.getElementById('search-results').innerHTML = '';
 }
@@ -53,7 +87,6 @@ function saveAndRender() {
 }
 
 function render() {
-    // Sidebar progetti
     const list = document.getElementById('project-list');
     list.innerHTML = '';
     projects.forEach((p, i) => {
@@ -64,7 +97,6 @@ function render() {
         list.appendChild(div);
     });
 
-    // Griglia link
     const container = document.getElementById('links-container');
     container.innerHTML = '';
     if (activeIdx !== null) {
@@ -75,7 +107,7 @@ function render() {
             card.href = link.url;
             card.target = '_blank';
             card.innerHTML = `
-                <img src="https://logo.clearbit.com/${link.domain}?size=100" onerror="this.src='https://via.placeholder.com/100'">
+                <img src="${link.logo}" onerror="this.src='https://via.placeholder.com/100'">
                 <span>${link.name}</span>
             `;
             container.appendChild(card);
@@ -83,4 +115,5 @@ function render() {
     }
 }
 
+// Caricamento iniziale
 render();
